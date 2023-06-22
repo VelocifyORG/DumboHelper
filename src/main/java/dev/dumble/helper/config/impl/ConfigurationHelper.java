@@ -6,10 +6,9 @@ import lombok.experimental.UtilityClass;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @UtilityClass
 public class ConfigurationHelper {
@@ -39,9 +38,12 @@ public class ConfigurationHelper {
 		final File[] files = folder.listFiles();
 		if (files == null) return Collections.emptyList();
 
-		return Arrays.stream(files)
-				.filter(file -> file.isFile() && file.getName().endsWith(".yml"))
-				.map(File::getName)
-				.collect(Collectors.toList());
+		final List<String> list = new ArrayList<>();
+		for (File file : files) {
+			if (!file.isFile() || !file.getName().endsWith(".yml")) continue;
+
+			list.add(file.getName());
+		}
+		return list;
 	}
 }
