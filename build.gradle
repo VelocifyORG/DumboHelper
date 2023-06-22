@@ -1,0 +1,51 @@
+plugins {
+    id 'java'
+    id 'maven-publish'
+}
+
+group 'dev.dumble.helper'
+version '2.3-beta'
+
+publishing {
+    publications {
+        dumboHelper(MavenPublication) {
+            from components.java
+        }
+    }
+    repositories {
+        maven {
+            name = "DumboHelper"
+            url = "sftp://45.81.19.193:22/var/www/html/maven/"
+
+            credentials {
+                username System.getenv('USERNAME')
+                password System.getenv('PASSWORD')
+            }
+        }
+    }
+}
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.15.2'
+    implementation 'org.reflections:reflections:0.10.2'
+
+    compileOnly 'org.spigotmc:spigot-api:1.19-R0.1-SNAPSHOT'
+
+    compileOnly 'org.projectlombok:lombok:1.18.26'
+    annotationProcessor 'org.projectlombok:lombok:1.18.26'
+
+    testCompileOnly 'org.projectlombok:lombok:1.18.26'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.26'
+}
+
+test {
+    useJUnitPlatform()
+}
