@@ -10,19 +10,19 @@ import java.util.concurrent.ConcurrentHashMap;
 @UtilityClass
 public class ConfigurationMap {
 
-	private final Map<String, Configuration> CONFIGURATION_MAP = new ConcurrentHashMap<>();
+    private final Map<String, Configuration> CONFIGURATION_MAP = new ConcurrentHashMap<>();
 
-	public Configuration get(String path) {
-		return Optional
-				.ofNullable(CONFIGURATION_MAP.get(path))
-				.orElseThrow(() -> new InvalidConfigurationException(path));
-	}
+    public Configuration get(String path) {
+        return Optional
+            .ofNullable(CONFIGURATION_MAP.get(path))
+            .orElseThrow(() -> new InvalidConfigurationException(path));
+    }
 
-	boolean contains(String path) {
-		return CONFIGURATION_MAP.containsKey(path);
-	}
+    boolean contains(String path) {
+        return CONFIGURATION_MAP.containsKey(path);
+    }
 
-	void add(String path, Configuration configuration) {
-		CONFIGURATION_MAP.put(path, configuration);
-	}
+    void add(String path, Configuration configuration) {
+        CONFIGURATION_MAP.put(path, configuration);
+    }
 }

@@ -1,0 +1,28 @@
+[versions]
+# build-logic
+indra = "3.1.3"
+blossom = "2.1.0"
+shadow = "8.1.1"
+kotlin = "1.9.22"
+gremlin = "0.0.3"
+idea-gradle = "1.1.7"
+run-task = "2.2.2"
+hangar-publish = "0.1.1"
+spotless = "6.23.3"
+ktlint = "1.0.1"
+jackson = "2.16.1"
+
+[libraries]
+# jackson
+jackson-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
+
+# build-logic stuff
+indra-common = { module = "net.kyori:indra-common", version.ref = "indra" }
+indra-crossdoc = { module = "net.kyori:indra-crossdoc", version.ref = "indra" }
+indra-spotless = { module = "net.kyori:indra-licenser-spotless", version.ref = "indra" }
+indra-git = { module = "net.kyori:indra-git", version.ref = "indra" }
+shadow = { module = "com.github.johnrengelman:shadow", version.ref = "shadow" }
+idea-gradle = { module = "gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext", version.ref = "idea-gradle" }
+
+[plugins]
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }

@@ -12,95 +12,96 @@ import lombok.Setter;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.Map;
 import java.util.Objects;
 
-@Getter @Setter(value = AccessLevel.PROTECTED)
+@Getter
+@Setter(value = AccessLevel.PROTECTED)
 @Builder(setterPrefix = "set")
 public class Configuration extends AbstractConfiguration {
 
-	public Map<String, Node<Object>> nodeMap;
+    public Map<String, Node<Object>> nodeMap;
 
-	protected String configurationPath;
-	protected InputStream resourcesStream;
+    protected String configurationPath;
+    protected InputStream resourcesStream;
 
-	private static class ModifiedConfigurationBuilder extends ConfigurationBuilder {
+    public static ConfigurationBuilder builder() {
+        return new ModifiedConfigurationBuilder();
+    }
 
-		@Override
-		public Configuration build() {
-			Configuration configuration;
+    @Override
+    public void reload() {
+        this.getNodeMap().clear();
 
-			try {
-				if (super.configurationPath == null)
-					throw new InvalidConfigurationException("You haven't provided any configuration details for retrieving the configuration file!");
+        this.loadConfiguration();
+    }
 
-				if (ConfigurationMap.contains(super.configurationPath))
-					throw new ConfigurationLoadException(super.configurationPath);
+    @Override
+    public void saveDefault() {
+        try {
+            final Path filePath = Paths.get(this.getConfigurationPath());
 
-				if (super.resourcesStream == null)
-					super.resourcesStream = DumbHelper.getClassLoader().getResourceAsStream(super.configurationPath);
+            final Path parent = filePath.getParent();
+            if (Objects.nonNull(parent)) Files.createDirectories(parent);
 
-				configuration = super.build();
-				ConfigurationMap.add(super.configurationPath, configuration);
+            Files.copy(resourcesStream, filePath, StandardCopyOption.REPLACE_EXISTING);
 
-				if (Files.exists(Paths.get(super.configurationPath))) {
-					configuration.loadConfiguration();
+            this.loadConfiguration();
 
-					return configuration;
-				}
-				configuration.saveDefault();
+        } catch (InvalidPathException | IOException exception) {
+            throw new InvalidFilePathException(exception);
+        }
+    }
 
-			} catch (InvalidPathException | NullPointerException exception) {
-				throw new InvalidConfigurationException(super.configurationPath);
-			}
-			return configuration;
-		}
-	}
+    @Override
+    public void loadConfiguration() {
+        try {
+            final InputStream stream = Files.newInputStream(Paths.get(this.getConfigurationPath()));
+            final Iterable<Object> objects = super.getYaml().loadAll(stream);
 
-	public static ConfigurationBuilder builder() {
-		return new ModifiedConfigurationBuilder();
-	}
+            for (Object object : objects)
+                this.setNodeMap(ConfigurationParser.parseConfiguration(object));
 
-	@Override
-	public void reload() {
-		this.getNodeMap().clear();
+        } catch (IOException exception) {
+            throw new InvalidFilePathException("The path contains invalid characters, or it is invalid for other file system reasons.", exception);
+        }
+    }
 
-		this.loadConfiguration();
-	}
+    private static class ModifiedConfigurationBuilder extends ConfigurationBuilder {
 
-	@Override
-	public void saveDefault() {
-		try {
-			final Path filePath = Paths.get(this.getConfigurationPath());
+        @Override
+        public Configuration build() {
+            Configuration configuration;
 
-			final Path parent = filePath.getParent();
-			if (Objects.nonNull(parent)) Files.createDirectories(parent);
+            try {
+                if (super.configurationPath == null)
+                    throw new InvalidConfigurationException("You haven't provided any configuration details for retrieving the configuration file!");
 
-			Files.copy(resourcesStream, filePath, StandardCopyOption.REPLACE_EXISTING);
+                if (ConfigurationMap.contains(super.configurationPath))
+                    throw new ConfigurationLoadException(super.configurationPath);
 
-			this.loadConfiguration();
+                if (super.resourcesStream == null)
+                    super.resourcesStream = DumbHelper.CLASS_LOADER.getResourceAsStream(super.configurationPath);
 
-		} catch (InvalidPathException | IOException exception) {
-			exception.printStackTrace();
+                configuration = super.build();
+                ConfigurationMap.add(super.configurationPath, configuration);
 
-			throw new InvalidFilePathException();
-		}
-	}
+                if (Files.exists(Paths.get(super.configurationPath))) {
+                    configuration.loadConfiguration();
 
-	@Override
-	public void loadConfiguration() {
-		try {
-			final InputStream stream = Files.newInputStream(Paths.get(this.getConfigurationPath()));
-			final Iterable<Object> objects = super.getYaml().loadAll(stream);
+                    return configuration;
+                }
+                configuration.saveDefault();
 
-			for (Object object : objects)
-				this.setNodeMap(ConfigurationParser.parseConfiguration(object));
-
-		} catch (IOException exception) {
-			exception.printStackTrace();
-
-			throw new InvalidFilePathException("The path contains invalid characters, or it is invalid for other file system reasons.");
-		}
-	}
+            } catch (InvalidPathException | NullPointerException exception) {
+                throw new InvalidConfigurationException(super.configurationPath, exception);
+            }
+            return configuration;
+        }
+    }
 }
